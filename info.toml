@@ -1,0 +1,10 @@
+[meta]
+name     = "Shadowless Chrono"
+author   = "XertroV"
+category = "Utilities"
+version  = "0.0.0"
+siteid   = 358
+
+[script]
+#__DEFINES__
+# dependencies = ["Camera", "VehicleState"]
