@@ -49,6 +49,10 @@ void AwaitGetMLObjs() {
         }
         count++;
         if (ChronoFrame is null && count < 10) trace('not found');
+        if (count > 10) {
+            warn('ML not found, not updating ML props');
+            return;
+        }
     }
     startnew(UpdateChronoStyle);
 }
