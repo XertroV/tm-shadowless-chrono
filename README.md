@@ -2,6 +2,8 @@
 
 Disables the chrono's drop shadow (well, technically it's an emboss).
 
+Blame bmx22c for this plugin.
+
 License: Public Domain
 
 Authors: XertroV
