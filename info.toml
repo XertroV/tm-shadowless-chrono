@@ -2,7 +2,7 @@
 name     = "Shadowless Chrono"
 author   = "XertroV"
 category = "Utilities"
-version  = "0.1.2"
+version  = "0.2.0"
 siteid   = 358
 
 [script]
