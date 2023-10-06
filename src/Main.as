@@ -67,6 +67,8 @@ void UpdateChronoStyle() {
 }
 
 void ResetChronoStyle() {
+    auto app = GetApp();
+    if (app is null || app.CurrentPlayground is null) @ChronoFrame = null;
     if (ChronoFrame is null) return;
     try {
         ChronoFrame.Controls[0].Control.Style.LabelForceEmbossed = true;
