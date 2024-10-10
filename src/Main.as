@@ -4,75 +4,38 @@ void Main() {
 
 void OnDestroyed() { Unload(); }
 void OnDisabled() { Unload(); }
-void Unload() { ResetChronoStyle(); }
-void OnEnabled() {
-    try {
-        AwaitGetMLObjs(); // can throw outside PG, just ignore
-    } catch {}
- }
+void Unload() { }
+void OnEnabled() { startnew(CMapLoop); }
 
-// note: we actually set frame-chrono to @ChronoFrame -- the child of Race_Chrono
-const string ChronoFrameId = "Race_Chrono";
-
+uint loopNonce = 0;
 void CMapLoop() {
+    auto myNonce = ++loopNonce;
     auto app = cast<CGameManiaPlanet>(GetApp());
     auto net = app.Network;
-    while (true) {
+    while (myNonce == loopNonce) {
         yield();
         while (net.ClientManiaAppPlayground is null) yield();
-        AwaitGetMLObjs();
+        AwaitGetMLObjs(myNonce);
         while (net.ClientManiaAppPlayground !is null) yield();
-        @ChronoFrame = null;
-        count = 0;
     }
 }
 
-CGameManialinkFrame@ ChronoFrame = null;
-
-uint count = 0;
-void AwaitGetMLObjs() {
+void AwaitGetMLObjs(uint _nonce) {
     auto net = cast<CTrackManiaNetwork>(GetApp().Network);
     if (net.ClientManiaAppPlayground is null) throw('null cmap');
-    auto cmap = net.ClientManiaAppPlayground;
-    while (cmap.UILayers.Length < 7) yield();
-    count = 0;
-    while (ChronoFrame is null) {
-        sleep(50);
-        for (uint i = 0; i < cmap.UILayers.Length; i++) {
-            auto layer = cmap.UILayers[i];
-            if (!layer.IsLocalPageScriptRunning || !layer.IsVisible || layer.LocalPage is null) continue;
-            auto frame = cast<CGameManialinkFrame>(layer.LocalPage.GetFirstChild(ChronoFrameId));
-            if (frame is null || frame.Controls.Length < 1) continue;
-            @frame = cast<CGameManialinkFrame>(frame.Controls[0]);
-            if (frame is null || frame.Controls.Length < 1) continue;
-            @ChronoFrame = frame;
-            break;
+    while (_nonce == loopNonce && net.ClientManiaAppPlayground !is null) {
+        trace('getting pages');
+        auto mlPages = net.GetManialinkPages();
+        trace('mlPages.L =' + mlPages.Length);
+        for (uint i = 0; i < mlPages.Length; i++) {
+            auto page = mlPages[i];
+            if (page is null) continue;
+            // trace('url: ' + page.Url);
+            if (page.Url == "<Old XMLRPC Deprecated>" && page.MainFrame.Controls.Length > 0 && page.MainFrame.Controls[0].Visible) {
+                page.MainFrame.Controls[0].Visible = false;
+            }
         }
-        count++;
-        // if (ChronoFrame is null && count < 50) trace('not found');
-        if (count > 50) {
-            warn('ML not found, not updating ML props');
-            return;
-        }
-    }
-    startnew(UpdateChronoStyle);
-}
-
-void UpdateChronoStyle() {
-    if (ChronoFrame is null) throw('unexpected null ChronoFrame');
-    if (ChronoFrame.Controls.Length < 1) throw('helper frame controls < 1');
-    auto label = ChronoFrame.Controls[0];
-    if (label is null) throw('null label');
-    label.Control.Style.LabelForceEmbossed = false;
-}
-
-void ResetChronoStyle() {
-    auto app = GetApp();
-    if (app is null || app.CurrentPlayground is null) @ChronoFrame = null;
-    if (ChronoFrame is null) return;
-    try {
-        ChronoFrame.Controls[0].Control.Style.LabelForceEmbossed = true;
-    } catch {
-        warn('Resetting chrono style exception: ' + getExceptionInfo());
+        trace('done pages');
+        sleep(1000);
     }
 }
